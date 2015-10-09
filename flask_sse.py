@@ -25,7 +25,8 @@ class ConnectionPool(object):
             host=current_app.config.get('SSE_REDIS_HOST', 'localhost'),
             port=current_app.config.get('SSE_REDIS_PORT', 6379),
             db=current_app.config.get('SSE_REDIS_DB', 0),
-            password=current_app.config.get('SSE_REDIS_PASSWORD', None)
+            password=current_app.config.get('SSE_REDIS_PASSWORD', None),
+            max_connections=current_app.config.get('SSE_REDIS_MAX_CONNECTIONS', None)
         )
         return StrictRedis(connection_pool=pool)
 
