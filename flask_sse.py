@@ -34,8 +34,15 @@ class ConnectionPool(object):
 class SseStream(object):
 
     def __init__(self, conn, channel):
+        self.conn = conn
         self.pubsub = conn.pubsub()
         self.pubsub.subscribe(channel)
+        conn.publish(channel, '_flush')
+        conn.publish(channel, '_flush')
+
+    def close(self):
+        self.pubsub.close()
+        self.conn.connection_pool.release(self.conn)
 
     def __iter__(self):
         sse = PySse()
@@ -43,11 +50,13 @@ class SseStream(object):
             yield data.encode('u8')
         for message in self.pubsub.listen():
             if message['type'] == 'message':
-                event, data = json.loads(message['data'])
-                sse.add_message(event, data)
-                for data in sse:
-                    yield data.encode('u8')
-
+                if message['data'] != '_flush':
+                    event, data = json.loads(message['data'])
+                    sse.add_message(event, data)
+                    for data in sse:
+                        yield data.encode('u8')
+                else:
+                    yield ":\n".encode('u8')
 
 sse = Blueprint('sse', __name__)
 
