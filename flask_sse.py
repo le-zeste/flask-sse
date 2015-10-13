@@ -42,7 +42,10 @@ class SseStream(object):
 
     def close(self):
         self.pubsub.close()
-        self.conn.connection_pool.release(self.conn)
+        try:
+            self.conn.connection_pool.release(self.conn)
+        except AttributeError:
+            pass
 
     def __iter__(self):
         sse = PySse()
